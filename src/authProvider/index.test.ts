@@ -2,6 +2,11 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { jiraAuthProvider } from './index'
 import { setAuthInStorage, STORAGE_KEY } from '@/dataProvider/httpClient'
 
+// react-admin AuthProvider: logout/getPermissions require a param; getIdentity is optional
+const logout = () => jiraAuthProvider.logout({})
+const getIdentity = () => jiraAuthProvider.getIdentity!()
+const getPermissions = () => jiraAuthProvider.getPermissions!({})
+
 describe('jiraAuthProvider.login', () => {
   afterEach(() => localStorage.clear())
 
@@ -27,12 +32,12 @@ describe('jiraAuthProvider.logout', () => {
 
   it('clears credentials from storage', async () => {
     setAuthInStorage({ jiraUrl: 'http://localhost', token: 'tok' })
-    await jiraAuthProvider.logout()
+    await logout()
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
   })
 
   it('resolves when storage is already empty', async () => {
-    await expect(jiraAuthProvider.logout()).resolves.toBeUndefined()
+    await expect(logout()).resolves.toBeUndefined()
   })
 })
 
@@ -79,14 +84,14 @@ describe('jiraAuthProvider.getIdentity', () => {
       user: { key: 'testuser', displayName: 'Test User', avatarUrls: { '48x48': 'http://avatar' } },
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
-    const identity = await jiraAuthProvider.getIdentity()
+    const identity = await getIdentity()
     expect(identity.id).toBe('testuser')
     expect(identity.fullName).toBe('Test User')
     expect(identity.avatar).toBe('http://avatar')
   })
 
   it('returns empty identity when no user stored', async () => {
-    const identity = await jiraAuthProvider.getIdentity()
+    const identity = await getIdentity()
     expect(identity.id).toBe('')
     expect(identity.fullName).toBe('Unknown')
   })
@@ -97,14 +102,14 @@ describe('jiraAuthProvider.getIdentity — edge cases', () => {
 
   it('returns empty identity when localStorage contains invalid JSON', async () => {
     localStorage.setItem(STORAGE_KEY, 'not-valid-json')
-    const identity = await jiraAuthProvider.getIdentity()
+    const identity = await getIdentity()
     expect(identity.id).toBe('')
     expect(identity.fullName).toBe('Unknown')
   })
 
   it('returns empty identity when stored auth has no user field', async () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ jiraUrl: 'http://x', token: 't' }))
-    const identity = await jiraAuthProvider.getIdentity()
+    const identity = await getIdentity()
     expect(identity.id).toBe('')
     expect(identity.fullName).toBe('Unknown')
   })
@@ -112,6 +117,6 @@ describe('jiraAuthProvider.getIdentity — edge cases', () => {
 
 describe('jiraAuthProvider.getPermissions', () => {
   it('resolves with null', async () => {
-    await expect(jiraAuthProvider.getPermissions()).resolves.toBeNull()
+    await expect(getPermissions()).resolves.toBeNull()
   })
 })

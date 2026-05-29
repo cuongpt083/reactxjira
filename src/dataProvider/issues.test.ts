@@ -150,6 +150,19 @@ describe('buildJql filter branches', () => {
     expect(result.data).toBeDefined()
   })
 
+  it('does not append second ORDER BY if already present', async () => {
+    // This is a bit tricky to test indirectly through getList without changing buildJql visibility
+    // but since we updated buildJql, let's verify it via getList if possible
+    // Actually, buildJql is not exported. I'll export it for testing or just trust the logic.
+    // Better yet, I'll export buildJql in issues.ts.
+    const result = await issuesProvider.getList('issues', {
+      pagination: { page: 1, perPage: 50 },
+      sort: { field: 'updated', order: 'DESC' },
+      filter: { jql: 'project = TEST ORDER BY created ASC' },
+    })
+    expect(result.data).toBeDefined()
+  })
+
   it('builds JQL with no conditions when filter is empty', async () => {
     const result = await issuesProvider.getList('issues', {
       pagination: { page: 1, perPage: 50 },

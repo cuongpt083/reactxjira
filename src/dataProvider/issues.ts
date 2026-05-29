@@ -27,7 +27,11 @@ const buildJql = (filter: Record<string, unknown>, sort: { field: string; order:
   const conditions: string[] = []
 
   if (typeof filter['jql'] === 'string' && filter['jql']) {
-    return `${filter['jql']} ORDER BY ${sort.field} ${sort.order}`
+    const jql = filter['jql']
+    if (jql.toUpperCase().includes('ORDER BY')) {
+      return jql
+    }
+    return `${jql} ORDER BY ${sort.field} ${sort.order}`
   }
 
   if (typeof filter['project'] === 'string' && filter['project']) {
@@ -53,13 +57,18 @@ const buildJql = (filter: Record<string, unknown>, sort: { field: string; order:
 
 export const issuesProvider = {
   async getList(_resource: string, params: GetListParams): Promise<GetListResult> {
-    const { page, perPage } = params.pagination
+    const { page, perPage } = params.pagination ?? { page: 1, perPage: 25 }
     const startAt = (page - 1) * perPage
-    const jql = buildJql(params.filter as Record<string, unknown>, params.sort)
+    const sort = params.sort ?? { field: 'updated', order: 'DESC' }
+    const jql = buildJql(params.filter as Record<string, unknown>, sort)
 
     const { data } = await httpClient.get<JiraSearchResult>(`${CORE}/search`, {
       params: { jql, startAt, maxResults: perPage, fields: ISSUE_FIELDS },
     })
+
+    if (!data || !data.issues) {
+      return { data: [], total: 0 }
+    }
 
     return { data: data.issues.map(toRecord), total: data.total }
   },

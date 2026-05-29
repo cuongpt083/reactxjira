@@ -1,9 +1,17 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
+import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const rawUrl = env['VITE_JIRA_URL'] ?? 'http://localhost:8080'
+  const jiraUrl = new URL(rawUrl.endsWith('/') ? rawUrl : rawUrl + '/')
+  const jiraOrigin = jiraUrl.origin
+  const jiraContext = jiraUrl.pathname.replace(/\/$/, '')
+
+  return {
   plugins: [
     react(),
     VitePWA({
@@ -42,9 +50,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/jira-api': {
-        target: process.env.VITE_JIRA_URL ?? 'http://localhost:8080',
+        target: jiraOrigin,
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/jira-api/, ''),
+        rewrite: (p) => p.replace(/^\/jira-api/, jiraContext),
       },
     },
   },
@@ -72,4 +80,5 @@ export default defineConfig({
       ],
     },
   },
+  }
 })

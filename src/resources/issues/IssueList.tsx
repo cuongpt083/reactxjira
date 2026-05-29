@@ -6,9 +6,9 @@ import {
   FunctionField,
   SearchInput,
   SelectInput,
-  useMediaQuery,
   SimpleList,
 } from 'react-admin'
+import { useMediaQuery } from '@mui/material'
 import type { Theme } from '@mui/material/styles'
 import type { RaRecord } from 'react-admin'
 import { StatusChip } from '@/components/StatusChip/StatusChip'
@@ -40,12 +40,12 @@ const issueFilters = [
 ]
 
 export const IssueList = () => {
-  const isSmall = useMediaQuery<Theme>((theme) => theme.breakpoints.down('md'))
+  const isSmall = useMediaQuery<Theme>((theme: Theme) => theme.breakpoints.down('md'))
 
   return (
     <List
       filters={issueFilters}
-      filterDefaultValues={{ jql: 'assignee = currentUser() ORDER BY updated DESC' }}
+      filterDefaultValues={{ jql: 'assignee = currentUser()' }}
       sort={{ field: 'updated', order: 'DESC' }}
       perPage={25}
     >

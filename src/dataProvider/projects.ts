@@ -14,6 +14,9 @@ const toRecord = (project: JiraProject) => ({ ...project, id: project.id })
 export const projectsProvider = {
   async getList(_resource: string, _params: GetListParams): Promise<GetListResult> {
     const { data } = await httpClient.get<JiraProject[]>(`${CORE}/project`)
+    if (!Array.isArray(data)) {
+      return { data: [], total: 0 }
+    }
     return { data: data.map(toRecord), total: data.length }
   },
 
